@@ -1,0 +1,20 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+    <h2>Register</h2>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+
+    <form action="{% url 'register' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {{ profile_form.as_p }}
+        <p><input class="btn btn-primary" type="submit" value="Register"></p>
+    </form>
+
+    Already have an account? <a href="{% url 'login' %}">Log In here.</a>
+<br> <br>
+{% endblock %}

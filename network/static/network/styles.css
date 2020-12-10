@@ -1,0 +1,21 @@
+.main_title {
+  background-color: #1e3175;
+  color: #fff;
+  padding: 5px 50px;  
+}
+
+.label {
+  font-weight: bold;
+  width: 200px;
+
+}
+.title_header {
+  font-weight: bold;
+}
+
+.liked_post {
+   background: blue;
+}
+.unlike_post {
+   background: red;
+}

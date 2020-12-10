@@ -1,0 +1,223 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block title %}Social Network - Profile {% endblock %}
+
+{% block body %}
+
+<div style="width: 85%; margin: auto;">
+
+
+   <div class="main_title">
+      <h3>Profile Page </h3>
+   </div> <br>
+
+   <div class="row ">
+
+      <div class="col-8">
+         <div>
+            <label class="label" for="name">Full Name</label>
+            <span class="title_header"> {{ page_user.user.first_name }} {{page_user.user.last_name}} </span>
+         </div>
+         <div>
+            <label class="label" for="email">Email</label>
+            <span class="title_header"> {{ page_user.user.email }}</span>
+         </div>
+         <div>
+            <label class="label" for="gender">Gender</label>
+            <span class="title_header"> {{ page_user.gender }}</span>
+         </div>
+         <div>
+            <label class="label">Location</label>
+            <span class="title_header"> {{page_user.location}}</span>
+         </div>
+         <div>
+            <label class="label" >Followers</label>
+            <span class="follow-count{{page_user.user.id}}"> {{page_user.num_following}} </span>       
+         </div>
+         <div>
+            <label class="label">Following</label>
+            <span class="follow-count{{user.id}}"> {{num_followed}} </span>       
+         </div>
+
+         <br>
+ 
+
+         {% if user.is_authenticated %}
+         {% if page_user.user.username != user.username %}
+
+         <div class="row">
+            <div class="col">
+               <form action="{% url 'following-user' %}" method="POST" class='follow-form' id='{{page_user.user.id}}'>
+                  {% csrf_token %}
+                  <input type="hidden" name="poster_id" value="{{page_user.user.id}}">
+
+                  <button type="submit" class="ui btn btn-primary btn-sm pt-0 pb-0 follow-btn{{page_user.user.id}}">
+                     {% if user not in page_user.following.all %}
+                     Follow 
+                     {% else %}
+                     Unfollow 
+                     {% endif %}
+                  </button>
+
+               </form>
+            </div>
+
+         </div>
+         {% endif %}
+         {% endif %}
+
+      </div>
+
+      <div class="col-4">
+         <div class="card" style="width: 14rem;">
+            {% if page_user.profile_pic %}
+            <img src="{{ page_user.profile_pic.url }}" class="card-img-top" alt="...">
+            {% else %}
+            {% if page_user.gender == 'Male' %}
+            <img src="{% static 'network/profile/male.png' %}" class="card-img-top" alt="...">
+            {% else %}
+            <img src="{% static 'network/profile/female.png' %}" class="card-img-top" alt="...">
+            {% endif %}
+            {% endif %}
+         </div>
+      </div>
+   </div>
+
+   <hr>
+</div>
+
+<div style="width: 85%; margin: auto;">
+   <div class="main_title">
+      <h4> {{ page_user.user.first_name }} {{page_user.user.last_name}}'s Posts</h4>
+   </div>
+   <br>
+   <table id="postTable" class="table table-striped">
+
+      {% if posts %}
+      {% for post in posts %}
+      <tr id="post-{{post.id}}">
+
+         <td>
+            {% if post.poster.userprofile.profile_pic %}
+            <img src="{{ post.poster.userprofile.profile_pic.url }}" class="rounded-circle align-self-start mr-3 b-1"
+               alt="" width="64" height="64" style="border:3px solid #333;"><br>
+            {% else %}
+            {% if post.poster.userprofile.gender == 'Female' %}
+            <img src="{% static 'network/profile/female.png' %}" class="rounded-circle align-self-start mr-3 b-1"
+               alt="Pic" width="64" height="64" style="border:3px solid #333;"><br>
+            {% else %}
+            <img src="{% static 'network/profile/male.png' %}" class="rounded-circle align-self-start mr-3 b-1"
+               alt="Pic" width="64" height="64" style="border:3px solid #333;"><br>
+            {% endif %}
+            {% endif %}
+         </td>
+
+         <td class="userName " name="poster">
+            <strong><p class="m-0">{{post.poster.username}}</p> </strong>
+            <br>
+
+         </td>
+         <td>
+            <small> {{ post.post_date }} </small><br><br>
+            <div class="row">
+
+               <div class="col">
+                  <span class="like-count{{post.id}}"> {{post.num_likes}} </span>
+                  like{{post.num_likes|pluralize}}
+               </div>
+            </div>
+
+
+         </td>
+         <td class="userBody userData" name="body" colspan="3">
+            {{ post.body }}
+         </td>
+         <td>
+
+         </td>
+      </tr>
+      {% endfor %}
+      {% else %}
+      No Posts Yet
+      {% endif %}
+   </table>
+
+   <br><br>
+   <div style="display: flex; justify-content: center;" >
+
+      {% if posts.has_other_pages %}
+      <ul class="pagination">
+      {% if posts.has_previous %}
+         <li><a class="btn btn-outline-primary" href="?page={{ users.previous_page_number }}">&laquo;</a></li>
+      {% else %}
+         <li class="disabled"><span class="btn btn-secondary disabled">&laquo;</span></li>
+      {% endif %}
+      {% for i in posts.paginator.page_range %}
+         {% if posts.number == i %}
+            <li class="active"><span class="btn btn-primary">{{ i }} <span class="sr-only">(current)</span></span></li>
+         {% else %}
+            <li><a class="btn btn-outline-primary" href="?page={{ i }}">{{ i }}</a></li>
+         {% endif %}
+      {% endfor %}
+      {% if posts.has_next %}
+         <li><a class="btn btn-outline-primary" href="?page={{ users.next_page_number }}">&raquo;</a></li>
+      {% else %}
+         <li class="disabled"><span class="btn btn-secondary disabled">&raquo;</span></li>
+      {% endif %}
+      </ul>
+   {% endif %}
+
+
+</div>
+<br><br>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+   $('.follow-form').submit(function (e) {
+      e.preventDefault()
+
+      const poster_id = $(this).attr('id')
+      console.log(poster_id);
+
+      const likeText = $(`.follow-btn${poster_id}`).text()
+      const trim = $.trim(likeText)
+
+      const url = $(this).attr('action')
+
+      let res;
+      const followers = $(`.follow-count${poster_id}`).text()
+      const trimCount = parseInt(followers)
+      console.log(trimCount);
+      
+      $.ajax({
+         type: 'POST',
+         url: url,
+         data: {
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            'poster_id': poster_id,
+         },
+         success: function (response) {
+
+            if (trim === 'Unfollow') {
+               $(`.follow-btn${poster_id}`).text('Follow')
+               res = trimCount - 1
+            } else {
+               $(`.follow-btn${poster_id}`).text('Unfollow')
+               res = trimCount + 1
+            }
+
+            $(`.follow-count${poster_id}`).text(res)
+         },
+         error: function (response) {
+            console.log('error', response)
+         }
+      })
+
+   })
+
+</script>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "network/layout.html" %}
+{% load static %}
+
+{% block title %}Social Network - Following {% endblock %}
+
+{% block body %}
+
+
+
+<div style="width: 85%; margin: auto;">
+   <div class="main_title">
+      <h4>Following User's Posts</h4>
+   </div>
+   <br>
+   <table id="postTable" class="table table-striped">
+      {% if posts %}
+      {% for post in posts %}
+      <tr id="post-{{post.id}}">
+
+         <td>
+            {% if post.poster.userprofile.profile_pic %}
+            <img src="{{ post.poster.userprofile.profile_pic.url }}" class="rounded-circle align-self-start mr-3 b-1"
+               alt="" width="64" height="64" style="border:3px solid #333;"><br>
+            {% else %}
+            {% if post.poster.userprofile.gender == 'Female' %}
+            <img src="{% static 'network/profile/female.png' %}" class="rounded-circle align-self-start mr-3 b-1"
+               alt="Pic" width="64" height="64" style="border:3px solid #333;"><br>
+            {% else %}
+            <img src="{% static 'network/profile/male.png' %}" class="rounded-circle align-self-start mr-3 b-1"
+               alt="Pic" width="64" height="64" style="border:3px solid #333;"><br>
+            {% endif %}
+            {% endif %}
+         </td>
+
+         <td class="userName " name="poster">
+            <strong><a href="{% url 'show_profile' post.poster.id %}" class="m-0">{{post.poster.username}}</a> </strong>
+            <br>
+
+         </td>
+         <td>
+            <small> {{ post.post_date }} </small><br><br>
+            <div class="row">
+               {% if user.is_authenticated %}
+               <div class="col-4">
+                  <form action="{% url 'like-post-view' %}" method="POST" class='like-form' id='{{post.id}}'>
+                     {% csrf_token %}
+                     <input type="hidden" name="post_id" value="{{post.id}}">
+
+                     <button type="submit" class="ui btn btn-primary btn-sm pt-0 pb-0 like-btn{{post.id}}">
+                        {% if user not in post.liked.all %}
+                        Like
+                        {% else %}
+                        Unlike
+                        {% endif %}
+                     </button>
+
+                  </form>
+               </div>
+               {% endif %}
+               <div class="col-8">
+                  <div class="row">
+                     <div class="col">
+                        <span class="like-count{{post.id}}"> {{post.num_likes}} </span>
+                        like{{post.num_likes|pluralize}}
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+         </td>
+         <td class="userBody userData" name="body" colspan="3">
+            {{ post.body }}
+         </td>
+         <td>
+         {% if user.is_authenticated %}
+         {% if post.poster.id == user.id %}
+            <button class="btn btn-success btn-sm" onClick="editPost({{post.id }})" data-toggle="modal"
+               data-target="#myModal">
+               <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-pencil-square" fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                     d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456l-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                  <path fill-rule="evenodd"
+                     d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
+               </svg>
+            </button>
+            <button class="btn btn-danger btn-sm" onClick="deletePost({{post.id}})">
+               <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-trash-fill" fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd"
+                     d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5a.5.5 0 0 0-1 0v7a.5.5 0 0 0 1 0v-7z" />
+               </svg>
+            </button>
+         {% endif %}
+         {% endif %}
+         </td>
+
+
+      </tr>
+      {% endfor %}
+      {% else %}
+      No Posts Yet
+      {% endif %}
+   </table>
+
+   <br><br>
+   <div style="display: flex; justify-content: center;" >
+
+      {% if posts.has_other_pages %}
+      <ul class="pagination">
+      {% if posts.has_previous %}
+         <li><a class="btn btn-outline-primary" href="?page={{ users.previous_page_number }}">&laquo;</a></li>
+      {% else %}
+         <li class="disabled"><span class="btn btn-secondary disabled">&laquo;</span></li>
+      {% endif %}
+      {% for i in posts.paginator.page_range %}
+         {% if posts.number == i %}
+            <li class="active"><span class="btn btn-primary">{{ i }} <span class="sr-only">(current)</span></span></li>
+         {% else %}
+            <li><a class="btn btn-outline-primary" href="?page={{ i }}">{{ i }}</a></li>
+         {% endif %}
+      {% endfor %}
+      {% if posts.has_next %}
+         <li><a class="btn btn-outline-primary" href="?page={{ users.next_page_number }}">&raquo;</a></li>
+      {% else %}
+         <li class="disabled"><span class="btn btn-secondary disabled">&raquo;</span></li>
+      {% endif %}
+      </ul>
+   {% endif %}
+
+
+</div>
+<br><br>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+
+$('.like-form').submit(function (e) {
+      e.preventDefault()
+
+      const post_id = $(this).attr('id')
+
+      const likeText = $(`.like-btn${post_id}`).text()
+      const trim = $.trim(likeText)
+
+      const url = $(this).attr('action')
+
+      let res;
+      const likes = $(`.like-count${post_id}`).text()
+      const trimCount = parseInt(likes)
+
+      $.ajax({
+         type: 'POST',
+         url: url,
+         data: {
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val(),
+            'post_id': post_id,
+         },
+         success: function (response) {
+
+            if (trim === 'Unlike') {
+               $(`.like-btn${post_id}`).text('Like')
+               res = trimCount - 1
+            } else {
+               $(`.like-btn${post_id}`).text('Unlike')
+               res = trimCount + 1
+            }
+
+            $(`.like-count${post_id}`).text(res)
+         },
+         error: function (response) {
+            console.log('error', response)
+         }
+      })
+
+   })
+</script>
+{% endblock %}
